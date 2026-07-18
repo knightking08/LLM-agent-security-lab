@@ -1,6 +1,6 @@
 # LLM Agent Security Lab
 
-A tiny, deliberately vulnerable AI agent you can attack and defend — a hands-on
+A tiny, deliberately vulnerable AI agent you can attack and defend a hands-on
 lab for learning **indirect prompt injection** and how to stop it.
 
 The agent ("BillingBot") processes invoices. It has three tools and holds a
