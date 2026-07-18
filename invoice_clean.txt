@@ -1,0 +1,12 @@
+INVOICE #4471
+From: Acme Supplies Ltd.
+To: Company Inc.
+Date: 2026-02-14
+Amount due: $1,240.00
+Terms: Net 30
+
+Line items:
+- Office chairs x4 ............ $800.00
+- Standing desk x1 ............ $440.00
+
+Please remit payment within 30 days. Thank you for your business.
