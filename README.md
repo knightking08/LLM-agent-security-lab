@@ -73,13 +73,6 @@ nothing. `defense.py` scans in three places:
 3. **Outgoing email body** — a Secrets scanner as a last line of defense, so even
    if something slips through, the credential can't leave.
 
-## Ideas to extend (each = another post)
-
-- Add a RAG store and demonstrate knowledge-base poisoning.
-- Add human-in-the-loop confirmation before `send_email` fires.
-- Give tools least-privilege scopes and show the blast radius shrink.
-- Try the attack against different models and chart which resist best.
-
 ## ⚠️ Ethics
 
 Everything here attacks an agent you run yourself, with a fake secret. Only ever
