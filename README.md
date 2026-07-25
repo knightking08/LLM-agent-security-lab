@@ -1,13 +1,13 @@
 # LLM Agent Security Lab
 
-A deliberately vulnerable AI agent you can attack and defend a hands-on lab for
+A deliberately vulnerable AI agent you can attack and defend   a hands-on lab for
 **indirect prompt injection**: how it works, how well a guardrail stops it, and
 how much of the defending is actually the guardrail versus the model itself.
 
 The agent (**BillingBot**) processes invoices. It can read files, search the web,
 and send email, and it holds a fake internal credential it's told never to reveal.
 By feeding it a **poisoned invoice**, we try to make it exfiltrate that credential.
-Then we turn on a guardrail and measure the difference and we run the same
+Then we turn on a guardrail and measure the difference   and we run the same
 attacks through different models, because the model turns out to be a defense
 layer in its own right.
 
@@ -32,6 +32,8 @@ user ──► [BillingBot agent] ──► tools: read_file · web_search · se
 | `attacks/corpus.py` | 13 injection techniques + one clean control |
 | `attacks/harness.py` | Measures the guardrail per-technique (detection + false positives) |
 | `demo_variant.py` | Runs any corpus variant through the live agent, layer by layer |
+| `garak/config.json` | Garak REST-generator config pointed at the `/chat` endpoint |
+| `garak/HOWTO.md` | How to scan the agent with Garak, and what that does/doesn't test |
 | `RESULTS.md` | Full findings and caveats |
 
 ## Setup
@@ -53,7 +55,7 @@ ollama pull llama3.1
 # defaults already point here; no env vars needed
 ```
 
-OpenAI (needed to actually complete tool chains see Findings):
+OpenAI (needed to actually complete tool chains   see Findings):
 
 ```bash
 # bash
@@ -69,7 +71,7 @@ $env:LLM_API_KEY="sk-...your-key..."
 $env:LLM_MODEL="gpt-4o"
 ```
 
-Set your key as an environment variable only never commit it. The `.gitignore`
+Set your key as an environment variable only   never commit it. The `.gitignore`
 excludes `.env`, but the simplest safe path is to export it in your shell.
 
 ## Run the demos
@@ -93,6 +95,25 @@ python demo_variant.py v03_fake_system
 python demo_variant.py v12_payload_in_data
 ```
 
+## Scan with Garak (automated, direct-injection surface)
+
+The corpus and harness cover the *indirect* injection path (poison inside a
+document the agent reads). To cover the *direct* path   a large automated battery
+of known injection strings arriving as the user message   the agent exposes a
+`/chat` endpoint that [Garak](https://github.com/NVIDIA/garak) can scan.
+
+```bash
+pip install garak
+# terminal 1: start the agent (guard off, then on)
+python agent.py
+# terminal 2:
+garak -m rest -G garak/config.json -p promptinject
+```
+
+Run it once with `GUARD_ENABLED=false` and once with `true`, and compare the pass
+rates. See [`garak/HOWTO.md`](garak/HOWTO.md) for probe choices and, importantly,
+what this surface does and doesn't test versus the corpus.
+
 ## Findings (short version)
 
 Full detail, tables, and caveats are in [`RESULTS.md`](RESULTS.md). The headlines:
@@ -104,19 +125,19 @@ and misses the ones that *hide intent* (base64 encoding, polite phrasing,
 conditional rules, metadata smuggling). The distribution of the misses matters
 more than the raw detection rate.
 
-**The model is a second defense layer and results are model-dependent.**
+**The model is a second defense layer   and results are model-dependent.**
 
-- **Llama 3.1 8B** never leaked, but not because it refused it couldn't reliably
+- **Llama 3.1 8B** never leaked, but not because it refused   it couldn't reliably
   operate its own tools (emitted tool calls as plain text). Injection failed for a
   *capability* reason.
 - **gpt-4o** never leaked because it recognized the injections as social
   engineering and refused. On one subtler attack it performed the benign half of
-  the instruction and dropped the credential filtering *within* the instruction.
+  the instruction and dropped the credential   filtering *within* the instruction.
 
 **The takeaway.** Injection success is gated by two opposing model properties: a
 model must be capable enough to run a tool chain and not aligned enough to refuse.
 Weak models fail the first test; frontier models fail the second. The real
-exposure is the middle capable, compliance-tuned models that will act without
+exposure is the middle   capable, compliance-tuned models that will act without
 refusing. That gap is where a guardrail earns its place.
 
 > Note on honesty: an earlier version of the writeup claimed an entropy detector
@@ -126,14 +147,14 @@ refusing. That gap is where a guardrail earns its place.
 
 ## How the defense works
 
-Indirect injection doesn't arrive in the user's message it arrives inside a
+Indirect injection doesn't arrive in the user's message   it arrives inside a
 **document the agent reads**. A guardrail that only checks user input catches
 nothing. `defense.py` scans in three places:
 
-1. **User input** direct injection attempts.
-2. **Tool output** (the file the agent read) this is what matters for the
+1. **User input**   direct injection attempts.
+2. **Tool output** (the file the agent read)   this is what matters for the
    *indirect* attack; the poison lives in retrieved content.
-3. **Outgoing email** a Secrets scanner as a last line of defense. Note its
+3. **Outgoing email**   a Secrets scanner as a last line of defense. Note its
    real limit: it catches high-entropy tokens easily but can miss short,
    structured credentials. A secrets filter is only as good as its match against
    the secret you actually hold.
