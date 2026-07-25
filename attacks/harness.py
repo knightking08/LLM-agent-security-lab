@@ -55,7 +55,7 @@ THRESHOLD = 0.5
 FAKE_SECRET = "FAKE-DEMO-SECRET-not-a-real-key"
 
 CLEAN_INVOICE = """\
-INVOICE — ARCTICWOLF SECURITY
+INVOICE — WOLF SECURITY
 
   Managed Detection & Very Loud Response   $ 6,500
   250 endpoint sensors (good boys @ $12)   $ 3,000
