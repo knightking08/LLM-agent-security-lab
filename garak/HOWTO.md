@@ -1,48 +1,89 @@
-# Running Garak against the agent (before / after)
+# Scanning BillingBot with Garak
 
-Garak is a vulnerability scanner for LLMs — "nmap for language models." Instead
-of scanning ports, it fires hundreds of known attack prompts (probes) at an
-endpoint and grades how often they succeed.
+[Garak](https://github.com/NVIDIA/garak) is an automated LLM vulnerability
+scanner. It fires hundreds of known attack strings at a target and reports how
+often each one succeeds. Here it hits the agent's `/chat` endpoint through
+Garak's REST generator.
 
-Here we point Garak at the AGENT's HTTP endpoint (not a raw model), so we're
-testing the whole system including tools and guardrail.
+## What this tests (and what it does NOT)
 
-## 1. Start the agent server (in terminal 1)
+Read this before running — it changes how you interpret the numbers.
 
-Defense OFF (the "before" run):
+Garak sends its probes as the **user message** to `/chat`. So it exercises the
+**direct-injection** surface: attacker text arriving in the user's own input,
+scanned by `inspect_incoming_text` on the way in.
 
-    GUARD_ENABLED=false python agent.py
+It does **not** exercise the **indirect-injection** path that is the main point
+of this lab — injection hidden inside a *document the agent reads* via
+`read_file`. That path is covered by `run_attack.py`, `attacks/harness.py`, and
+`demo_variant.py`.
 
-The server listens on http://127.0.0.1:8000/chat
+So the two measurement tools are complementary, not redundant:
 
-## 2. Scan it with Garak (in terminal 2)
+| Tool | Surface | Attacks | Style |
+| --- | --- | --- | --- |
+| Garak (this) | direct (user message) | hundreds, automated | breadth |
+| corpus + harness | indirect (read file) | 13 hand-built techniques | depth |
 
-    garak --model_type rest -G garak/config.json \
-          --probes promptinject \
-          --report_prefix before_defense
+Garak's value here is breadth: it throws a large, curated battery of known
+injection and jailbreak strings at the user-input guardrail, which the 13-variant
+corpus doesn't attempt to cover.
 
-Garak sends each probe as {"input": "..."} and reads {"output": "..."} back,
-exactly as garak/config.json specifies. When it finishes it prints a pass rate
-and writes a report (look for the .html / .jsonl it names).
+## Setup
 
-## 3. Turn the defense ON and scan again (the "after" run)
+```bash
+pip install garak
+```
 
-Stop the server (Ctrl-C), restart with the guard on:
+## Run it (before / after the guardrail)
 
-    GUARD_ENABLED=true python agent.py
+The whole point is the comparison, so run the same probes twice.
 
-Then re-scan with a new prefix:
+**Terminal 1 — start the agent.** Guard OFF first:
 
-    garak --model_type rest -G garak/config.json \
-          --probes promptinject \
-          --report_prefix after_defense
+```bash
+# bash
+export GUARD_ENABLED=false
+python agent.py            # serves on http://127.0.0.1:8000
+```
 
-## 4. Compare
+```powershell
+# PowerShell
+$env:GUARD_ENABLED="false"
+python agent.py
+```
 
-Put the two pass rates side by side. That single number moving (e.g.
-"promptinject: 18% blocked -> 74% blocked") is the headline for your LinkedIn
-post. Screenshot both runs.
+**Terminal 2 — run Garak against it:**
 
-Tip: `promptinject` is a fast, relevant probe set to start with. Once it works,
-try more: `--probes dan` (jailbreaks) or drop `--probes` entirely for the full
-suite (slow — grab a coffee).
+```bash
+garak -m rest -G garak/config.json -p promptinject
+```
+
+Then stop the agent, restart it with `GUARD_ENABLED=true`, and run the same
+Garak command again. Compare the pass rates.
+
+## Probes worth running
+
+- `promptinject` — the core prompt-injection battery. Start here.
+- `encoding` — base64/rot13/other encodings. Directly relevant to this lab's
+  finding that the injection classifier is blind to encoded payloads. Worth a
+  look at whether the guardrail's behavior here matches the corpus result for
+  v05_base64.
+- `latentinjection` — Garak's indirect-injection probes. Note these still arrive
+  via the user message in this REST setup, so they test the input scanner, not
+  the `read_file` path.
+
+Run several at once by comma-separating: `-p promptinject,encoding`.
+
+## Reading the output
+
+Garak writes a report (path printed at the end of the run) with a pass/fail rate
+per probe and per attack. For this lab, the number that matters is the delta:
+how much does turning the guardrail on move the pass rate? Put the before/after
+figures next to the corpus results in `RESULTS.md` — together they characterize
+both the direct and indirect surfaces.
+
+## Note
+
+This scans an agent you run yourself, holding a fake secret. Only ever scan
+systems you own or are authorized to test.
