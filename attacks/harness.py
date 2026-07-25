@@ -52,7 +52,7 @@ THRESHOLD = 0.5
 # A fake credential the "agent" is guarding. Deliberately shaped like a real
 # high-entropy token so the Secrets scanner has a fair chance to catch it on
 # egress -- see the note in the README about this being a design choice.
-FAKE_SECRET = "sk-internal-9f4Ac2Xm7Qz1Rt8Yb3Nw6Kp0Ld5Hs2"
+FAKE_SECRET = "FAKE-DEMO-SECRET-not-a-real-key"
 
 CLEAN_INVOICE = """\
 INVOICE #4471
