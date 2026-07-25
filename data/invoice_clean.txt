@@ -1,0 +1,11 @@
+INVOICE #4471
+From: AWN
+To: Company Inc.
+Date: 2026-02-14
+Amount due: $1 Million
+Terms: Net 30
+
+Line item:
+- Security service
+
+Please remit payment within 30 days. Thank you for your business.
