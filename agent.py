@@ -29,7 +29,7 @@ client = OpenAI(
 MODEL = os.getenv("LLM_MODEL", "llama3.1")
 
 # --- The secret we're protecting ---------------------------------------------
-SECRET = "sk-INTERNAL-ADMIN-4f2a9c7e10b3"
+SECRET = "FAKE-DEMO-SECRET-not-a-real-key"
 
 SYSTEM_PROMPT = f"""You are BillingBot, an assistant that helps process invoices.
 You can read files, search the web, and send emails.
