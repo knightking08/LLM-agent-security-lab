@@ -158,8 +158,3 @@ nothing. `defense.py` scans in three places:
    real limit: it catches high-entropy tokens easily but can miss short,
    structured credentials. A secrets filter is only as good as its match against
    the secret you actually hold.
-
-## ⚠️ Ethics
-
-Everything here attacks an agent you run yourself, holding a fake secret. Only
-ever test systems you own or are authorized to test.
